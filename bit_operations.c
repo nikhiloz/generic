@@ -1,7 +1,11 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <limits.h>
+#include <string.h>
+#include <ctype.h>
+#include <errno.h>
 
 // Function prototypes
 void demonstrate_basic_operations(void);
@@ -10,16 +14,66 @@ void demonstrate_arithmetic_operations(void);
 void demonstrate_bit_checks(void);
 void demonstrate_value_exchange(void);
 void demonstrate_advanced_operations(void);
+void show_menu(void);
+void clear_input_buffer(void);
+int get_user_choice(void);
 
 int main() {
-    printf("=== Bit Manipulation Operations Demonstration ===\n\n");
+    printf("=== Interactive Bit Manipulation Operations Demonstration ===\n");
+    printf("This program demonstrates various bit manipulation techniques.\n");
+    printf("Use the menu to select which demonstration you want to run.\n\n");
 
-    demonstrate_basic_operations();
-    demonstrate_min_max_operations();
-    demonstrate_arithmetic_operations();
-    demonstrate_bit_checks();
-    demonstrate_value_exchange();
-    demonstrate_advanced_operations();
+    int choice;
+    bool running = true;
+
+    while (running) {
+        show_menu();
+        choice = get_user_choice();
+
+        printf("\n");
+        switch (choice) {
+            case 1:
+                demonstrate_basic_operations();
+                break;
+            case 2:
+                demonstrate_min_max_operations();
+                break;
+            case 3:
+                demonstrate_arithmetic_operations();
+                break;
+            case 4:
+                demonstrate_bit_checks();
+                break;
+            case 5:
+                demonstrate_value_exchange();
+                break;
+            case 6:
+                demonstrate_advanced_operations();
+                break;
+            case 7:
+                printf("Running all demonstrations...\n\n");
+                demonstrate_basic_operations();
+                demonstrate_min_max_operations();
+                demonstrate_arithmetic_operations();
+                demonstrate_bit_checks();
+                demonstrate_value_exchange();
+                demonstrate_advanced_operations();
+                break;
+            case 0:
+                printf("Exiting program. Goodbye!\n");
+                running = false;
+                break;
+            default:
+                printf("Invalid choice! Please select a number from 0-7.\n");
+                break;
+        }
+
+        if (running) {
+            printf("\nPress Enter to continue...");
+            getchar();
+            printf("\n");
+        }
+    }
 
     return 0;
 }
@@ -224,4 +278,49 @@ void demonstrate_advanced_operations(void) {
     printf("Original byte: 0x%02X, Swapped nibbles: 0x%02X\n", byte, swapped);
 
     printf("\n");
+}
+
+// Helper function to display the menu
+void show_menu(void) {
+    printf("========================================\n");
+    printf("        BIT OPERATIONS MENU\n");
+    printf("========================================\n");
+    printf("1. Basic Operations (Max/Min values)\n");
+    printf("2. Min/Max Operations (without conditionals)\n");
+    printf("3. Arithmetic Operations (multiply/divide by 2)\n");
+    printf("4. Bit Checks and Tests (odd/even, power of 2)\n");
+    printf("5. Value Exchange (XOR swap)\n");
+    printf("6. Advanced Operations (increment/decrement tricks)\n");
+    printf("7. Run All Demonstrations\n");
+    printf("0. Exit\n");
+    printf("========================================\n");
+    printf("Enter your choice (0-7): ");
+}
+
+// Helper function to clear input buffer
+void clear_input_buffer(void) {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF) {
+        // Clear the input buffer
+    }
+}
+
+// Helper function to get user choice with input validation
+int get_user_choice(void) {
+    int choice;
+    int result;
+
+    while (1) {
+        result = scanf("%d", &choice);
+
+        if (result == 1) {
+            // Valid integer input
+            clear_input_buffer(); // Clear any remaining characters
+            return choice;
+        } else {
+            // Invalid input (not an integer)
+            printf("Invalid input! Please enter a number (0-7): ");
+            clear_input_buffer(); // Clear the invalid input
+        }
+    }
 }

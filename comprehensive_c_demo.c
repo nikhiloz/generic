@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <pthread.h>
 #include <unistd.h>
 #include <string.h>
@@ -119,6 +120,8 @@ static void demonstrate_pointer_operations(void);
 static void print_binary(uint8_t value);
 static void print_separator(const char *title);
 static int safe_system_command(const char *command);
+static void show_menu(void);
+static int get_user_choice(void);
 
 /*============================================================================
  * BASIC MATHEMATICAL OPERATIONS
@@ -282,6 +285,102 @@ static int safe_system_command(const char *command) {
 
     printf("Command completed with status: %d\n", WEXITSTATUS(result));
     return 0;
+}
+
+/**
+ * @brief Display interactive menu
+ */
+static void show_menu(void) {
+    printf("\n");
+    printf("========================================\n");
+    printf("    COMPREHENSIVE C DEMO MENU\n");
+    printf("========================================\n");
+    printf("1. Basic C Features\n");
+    printf("2. Bit Operations\n");
+    printf("3. Function Pointers\n");
+    printf("4. Endianness Detection\n");
+    printf("5. Bit Fields\n");
+    printf("6. Pointer Operations\n");
+    printf("7. Simple Threading\n");
+    printf("8. Mutex Threading\n");
+    printf("9. System Commands\n");
+    printf("10. Run All Demonstrations\n");
+    printf("0. Exit\n");
+    printf("========================================\n");
+    printf("Enter your choice (0-10): ");
+}
+
+/**
+ * @brief Get user choice with robust input validation using getline
+ */
+static int get_user_choice(void) {
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t nread;
+    char *endptr;
+    long choice;
+
+    do {
+        // Use getline() which automatically handles buffer allocation
+        nread = getline(&line, &len, stdin);
+
+        if (nread == -1) {
+            // Handle EOF or error
+            if (feof(stdin)) {
+                printf("\nEOF detected. Exiting program.\n");
+                free(line);
+                exit(EXIT_SUCCESS);
+            } else {
+                printf("Error reading input. Please try again: ");
+                continue;
+            }
+        }
+
+        // Remove trailing newline if present
+        if (nread > 0 && line[nread - 1] == '\n') {
+            line[nread - 1] = '\0';
+            nread--;
+        }
+
+        // Check for empty input
+        if (nread == 0) {
+            printf("Empty input! Please enter a number (0-10): ");
+            continue;
+        }
+
+        // Use strtol for robust string to integer conversion
+        errno = 0;  // Clear errno before conversion
+        choice = strtol(line, &endptr, 10);
+
+        // Check for conversion errors
+        if (errno == ERANGE) {
+            printf("Number out of range! Please enter a number (0-10): ");
+            continue;
+        }
+
+        if (endptr == line) {
+            // No digits were found
+            printf("No valid number found in '%s'! Please enter a number (0-10): ", line);
+            continue;
+        }
+
+        if (*endptr != '\0') {
+            // There are trailing non-numeric characters
+            printf("Invalid characters in '%s'! Please enter a number (0-10): ", line);
+            continue;
+        }
+
+        // Check if the number is within valid range
+        if (choice < 0 || choice > 10) {
+            printf("Choice %ld is out of range! Please enter a number (0-10): ", choice);
+            continue;
+        }
+
+        // Valid input - clean up and return
+        free(line);
+        return (int)choice;
+
+    } while (1);
 }
 
 /*============================================================================
@@ -607,7 +706,7 @@ static void demonstrate_system_commands(void) {
  *============================================================================*/
 
 /**
- * @brief Main function combining all demonstrations
+ * @brief Main function with interactive menu system
  */
 int main(int argc, char **argv) {
     printf("================================================================\n");
@@ -624,46 +723,129 @@ int main(int argc, char **argv) {
     printf("  SYSTEM_COMMANDS: %s\n", ENABLE_SYSTEM_COMMANDS ? "ENABLED" : "DISABLED");
     printf("  DEBUG FLAGS: 0x%02X\n", DEBUG);
 
-    // Run demonstrations
+    // Interactive menu loop
+    int choice;
+    bool running = true;
+
+    while (running) {
+        show_menu();
+        choice = get_user_choice();
+
+        printf("\n");
+        switch (choice) {
+            case 1:
 #if ENABLE_BASIC_FEATURES
-    demonstrate_basic_features(argc, argv);
+                demonstrate_basic_features(argc, argv);
+#else
+                printf("Basic features demonstration is disabled.\n");
 #endif
+                break;
 
+            case 2:
 #if ENABLE_BIT_OPERATIONS
-    demonstrate_bit_operations();
+                demonstrate_bit_operations();
+#else
+                printf("Bit operations demonstration is disabled.\n");
 #endif
+                break;
 
+            case 3:
 #if ENABLE_ADVANCED_FEATURES
-    demonstrate_function_pointers();
-    demonstrate_endianness();
-    demonstrate_bit_fields();
-    demonstrate_pointer_operations();
+                demonstrate_function_pointers();
+#else
+                printf("Function pointers demonstration is disabled.\n");
 #endif
+                break;
 
+            case 4:
+#if ENABLE_ADVANCED_FEATURES
+                demonstrate_endianness();
+#else
+                printf("Endianness demonstration is disabled.\n");
+#endif
+                break;
+
+            case 5:
+#if ENABLE_ADVANCED_FEATURES
+                demonstrate_bit_fields();
+#else
+                printf("Bit fields demonstration is disabled.\n");
+#endif
+                break;
+
+            case 6:
+#if ENABLE_ADVANCED_FEATURES
+                demonstrate_pointer_operations();
+#else
+                printf("Pointer operations demonstration is disabled.\n");
+#endif
+                break;
+
+            case 7:
 #if ENABLE_THREADING
-    demonstrate_threading_simple();
-    demonstrate_threading_mutex();
+                demonstrate_threading_simple();
+#else
+                printf("Simple threading demonstration is disabled.\n");
 #endif
+                break;
 
-#if ENABLE_SYSTEM_COMMANDS
-    demonstrate_system_commands();
+            case 8:
+#if ENABLE_THREADING
+                demonstrate_threading_mutex();
+#else
+                printf("Mutex threading demonstration is disabled.\n");
 #endif
+                break;
+
+            case 9:
+#if ENABLE_SYSTEM_COMMANDS
+                demonstrate_system_commands();
+#else
+                printf("System commands demonstration is disabled.\n");
+#endif
+                break;
+
+            case 10:
+                printf("Running all enabled demonstrations...\n\n");
+#if ENABLE_BASIC_FEATURES
+                demonstrate_basic_features(argc, argv);
+#endif
+#if ENABLE_BIT_OPERATIONS
+                demonstrate_bit_operations();
+#endif
+#if ENABLE_ADVANCED_FEATURES
+                demonstrate_function_pointers();
+                demonstrate_endianness();
+                demonstrate_bit_fields();
+                demonstrate_pointer_operations();
+#endif
+#if ENABLE_THREADING
+                demonstrate_threading_simple();
+                demonstrate_threading_mutex();
+#endif
+#if ENABLE_SYSTEM_COMMANDS
+                demonstrate_system_commands();
+#endif
+                break;
+
+            case 0:
+                printf("Exiting program. Goodbye!\n");
+                running = false;
+                break;
+
+            default:
+                printf("Invalid choice! Please select a number from 0-10.\n");
+                break;
+        }
+
+        if (running) {
+            printf("\nPress Enter to continue...");
+            getchar();
+        }
+    }
 
     print_separator("DEMONSTRATION COMPLETED");
-    printf("All enabled features have been demonstrated successfully.\n");
-    printf("\nKey concepts covered:\n");
-    printf("1. Command line argument processing\n");
-    printf("2. Function pointers and arrays\n");
-    printf("3. Bit manipulation operations\n");
-    printf("4. Dynamic memory management\n");
-    printf("5. Multi-threading with pthreads\n");
-    printf("6. Mutex synchronization\n");
-    printf("7. Conditional compilation\n");
-    printf("8. System command execution\n");
-    printf("9. Pointer operations and const correctness\n");
-    printf("10. Bit fields and structures\n");
-    printf("11. Endianness detection\n");
-    printf("12. Advanced bit manipulation techniques\n");
+    printf("Thank you for using the Comprehensive C Programming Demonstration!\n");
 
     return EXIT_SUCCESS;
 }
